@@ -20,8 +20,6 @@ test_df, logit, scaler, base_proba, proba, yte = build()
 amounts = test_df.amount.values
 
 st.title("🛡️ Payment Fraud-Risk Scorer")
-st.caption("Track 02 · AI Risk Manager — **defense-only**: scores transactions and "
-           "recommends defensive actions. No offense-capable output.")
 
 c1, c2, c3 = st.columns(3)
 c1.metric("PR-AUC (held-out)", f"{average_precision_score(yte, proba):.3f}")
