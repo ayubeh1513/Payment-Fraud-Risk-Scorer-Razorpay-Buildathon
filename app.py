@@ -105,5 +105,3 @@ if go:
     st.info(frs.ai_explanation(txn, frs.top_drivers(logit, scaler, row), action))
 
 st.divider()
-st.caption("Time-based held-out split (past → future). ML: scikit-learn. "
-           "AI: Groq LLM explanations. Defense-only; no protected attributes used.")
