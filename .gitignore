@@ -1,6 +1,0 @@
-PS_*.csv
-*.csv
-!dashboard/*.csv
-__pycache__/
-*.pyc
-.venv/
