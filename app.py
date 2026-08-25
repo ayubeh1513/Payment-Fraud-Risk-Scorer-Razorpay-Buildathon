@@ -3,7 +3,17 @@ import pandas as pd
 import streamlit as st
 from sklearn.metrics import average_precision_score, roc_auc_score
 
-import fraud_risk_scorer as frs   
+import fraud_risk_scorer as frs
+
+import os
+_groq_key = os.environ.get("GROQ_API_KEY", "")
+try:
+    if not _groq_key and "GROQ_API_KEY" in st.secrets:
+        _groq_key = st.secrets["GROQ_API_KEY"]
+except Exception:
+    pass
+frs.GROQ_API_KEY = _groq_key
+
 st.set_page_config(page_title="Payment Fraud-Risk Scorer", page_icon="🛡️", layout="wide")
 
 
@@ -20,7 +30,8 @@ test_df, logit, scaler, base_proba, proba, yte = build()
 amounts = test_df.amount.values
 
 st.title("🛡️ Payment Fraud-Risk Scorer")
-st.caption(" ")
+st.caption("Track 02 · AI Risk Manager — **defense-only**: scores transactions and "
+           "recommends defensive actions. No offense-capable output.")
 
 c1, c2, c3 = st.columns(3)
 c1.metric("PR-AUC (held-out)", f"{average_precision_score(yte, proba):.3f}")
@@ -104,3 +115,5 @@ if go:
     st.info(frs.ai_explanation(txn, frs.top_drivers(logit, scaler, row), action))
 
 st.divider()
+st.caption("Time-based held-out split (past → future). ML: scikit-learn. "
+           "AI: Groq LLM explanations. Defense-only; no protected attributes used.")
