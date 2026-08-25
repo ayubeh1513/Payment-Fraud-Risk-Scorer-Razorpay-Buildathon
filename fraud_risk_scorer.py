@@ -13,7 +13,8 @@ CSV_FILE = next((_HERE / n for n in ("PS_20174392719_1491204439457_log.csv",
                                       "sample_transactions.csv")
                  if (_HERE / n).exists()), _HERE / "sample_transactions.csv")
 FP_COST  = 500.0       
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")  
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+GROQ_MODEL   = "openai/gpt-oss-20b"
 
 FEATURES = ["amount", "oldbalanceOrg", "newbalanceOrig", "oldbalanceDest",
             "newbalanceDest", "errorBalanceOrig", "errorBalanceDest",
@@ -99,17 +100,22 @@ def defensive_action(score):
 
 def ai_explanation(txn, drivers, action):
     facts = ", ".join(drivers) or "model risk pattern"
-    if not GROQ_API_KEY:      
-        return f"Flagged (risk {txn['score']:.2f}). Drivers: {facts}. Action: {action}."
-    from groq import Groq
-    client = Groq(api_key=GROQ_API_KEY)
+    template = f"Flagged (risk {txn['score']:.2f}). Drivers: {facts}. Action: {action}."
+    if not GROQ_API_KEY:
+        return template
     prompt = (f"You are a payments fraud analyst. In 2 sentences, explain why this "
               f"transaction was flagged and justify the action. Factual, no identity "
               f"guessing.\nType {txn['type']}, amount ₹{txn['amount']:,.0f}, risk "
               f"{txn['score']:.2f}. Drivers: {facts}. Action: {action}.")
-    reply = client.chat.completions.create(model="llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": prompt}], temperature=0.2, max_tokens=140)
-    return reply.choices[0].message.content.strip()
+    try:
+        from groq import Groq
+        client = Groq(api_key=GROQ_API_KEY)
+        reply = client.chat.completions.create(model=GROQ_MODEL,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.2, max_tokens=140)
+        return reply.choices[0].message.content.strip()
+    except Exception as e:     
+        return f"{template}  (LLM unavailable: {type(e).__name__})"
 
 
 if __name__ == "__main__":
